@@ -31,16 +31,22 @@ import (
 )
 
 func main() {
+	if err := run(); err != nil {
+		panic(err)
+	}
+}
+
+func run() error {
 	r := gin.Default()
 	database.Connect()
 	routes.SetupRoutes(r)
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	startServerWithGracefulShutdown(r)
+	return startServerWithGracefulShutdown(r)
 }
 
-func startServerWithGracefulShutdown(handler http.Handler) {
+func startServerWithGracefulShutdown(handler http.Handler) error {
 	server := &http.Server{
 		Addr:    ":8080",
 		Handler: handler,
@@ -66,5 +72,7 @@ func startServerWithGracefulShutdown(handler http.Handler) {
 	if err := server.Shutdown(ctx); err != nil {
 		log.Fatalf("Ошибка при завершении работы сервера: %v", err)
 	}
+
 	log.Println("Сервер успешно завершил работу")
+	return nil
 }
