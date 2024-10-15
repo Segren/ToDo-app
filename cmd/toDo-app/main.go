@@ -16,20 +16,18 @@ package main
 
 import (
 	"context"
-	"log"
-	//"log/slog"
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/files"
 	"github.com/swaggo/gin-swagger"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-	_ "todo-app/docs" // для генерации документации
+	_ "todo-app/docs"
 	"todo-app/internal/database"
 	"todo-app/internal/routes"
-	//"todo-app/pkg/logger"
 )
 
 func main() {
@@ -38,10 +36,6 @@ func main() {
 	routes.SetupRoutes(r)
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
-	// _ = logger.NewLogger()
-
-	// slog.Info("Starting service")
 
 	startServerWithGracefulShutdown(r)
 }

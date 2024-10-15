@@ -13,13 +13,22 @@ import (
 
 var JwtSecret = []byte("секретный_ключ")
 
-// Структура JWT токена
 type Claims struct {
 	Username string `json:"username"`
 	jwt.StandardClaims
 }
 
-// Регистрация нового пользователя
+// Register godoc
+// @Summary Register a new user
+// @Description Register a new user with a username and password
+// @Tags auth
+// @Accept  json
+// @Produce  json
+// @Param   user  body     models.User  true  "User data"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} gin.H
+// @Failure 500 {object} gin.H
+// @Router /register [post]
 func Register(c *gin.Context) {
 	var user models.User
 	if err := c.ShouldBindJSON(&user); err != nil {
@@ -45,7 +54,18 @@ func Register(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "User successfully created"})
 }
 
-// Логин пользователя
+// Login godoc
+// @Summary Log in a user
+// @Description Log in a user and receive a JWT token
+// @Tags auth
+// @Accept  json
+// @Produce  json
+// @Param   user  body     models.User  true  "User credentials"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} gin.H
+// @Failure 401 {object} gin.H
+// @Failure 500 {object} gin.H
+// @Router /login [post]
 func Login(c *gin.Context) {
 	var user models.User
 	var input models.User
