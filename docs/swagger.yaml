@@ -1,0 +1,133 @@
+basePath: /
+definitions:
+  gin.H:
+    additionalProperties: {}
+    type: object
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+  todo-app_internal_models.ToDo:
+    properties:
+      completed:
+        type: boolean
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      description:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a simple ToDo API application.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: ToDo API
+  version: "1.0"
+paths:
+  /todos:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a new ToDo item
+      parameters:
+      - description: ToDo
+        in: body
+        name: todo
+        required: true
+        schema:
+          $ref: '#/definitions/todo-app_internal_models.ToDo'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/todo-app_internal_models.ToDo'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Delete a new ToDo
+      tags:
+      - todos
+    post:
+      consumes:
+      - application/json
+      description: Create a new ToDo item
+      parameters:
+      - description: ToDo
+        in: body
+        name: todo
+        required: true
+        schema:
+          $ref: '#/definitions/todo-app_internal_models.ToDo'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/todo-app_internal_models.ToDo'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Create a new ToDo
+      tags:
+      - todos
+    put:
+      consumes:
+      - application/json
+      description: Update a new ToDo item
+      parameters:
+      - description: ToDo
+        in: body
+        name: todo
+        required: true
+        schema:
+          $ref: '#/definitions/todo-app_internal_models.ToDo'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/todo-app_internal_models.ToDo'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Update a new ToDo
+      tags:
+      - todos
+swagger: "2.0"

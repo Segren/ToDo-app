@@ -1,0 +1,454 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>toDo-app: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">todo-app/cmd/toDo-app/main.go (0.0%)</option>
+				
+				<option value="file1">todo-app/internal/controllers/authController.go (58.1%)</option>
+				
+				<option value="file2">todo-app/internal/controllers/todoController.go (0.0%)</option>
+				
+				<option value="file3">todo-app/internal/database/database.go (28.6%)</option>
+				
+				<option value="file4">todo-app/internal/middleware/authMiddleware.go (100.0%)</option>
+				
+				<option value="file5">todo-app/internal/routes/routes.go (0.0%)</option>
+				
+				<option value="file6">todo-app/pkg/logger/logger.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package main
+
+import (
+        "context"
+        "log"
+        //"log/slog"
+        "github.com/gin-gonic/gin"
+        "net/http"
+        "os"
+        "os/signal"
+        "syscall"
+        "time"
+        "todo-app/internal/database"
+        "todo-app/internal/routes"
+        //"todo-app/pkg/logger"
+)
+
+func main() <span class="cov0" title="0">{
+        r := gin.Default()
+        database.Connect()
+        routes.SetupRoutes(r)
+
+        // _ = logger.NewLogger()
+
+        // slog.Info("Starting service")
+
+        startServerWithGracefulShutdown(r)
+}</span>
+
+func startServerWithGracefulShutdown(handler http.Handler) <span class="cov0" title="0">{
+        server := &amp;http.Server{
+                Addr:    ":8080",
+                Handler: handler,
+        }
+
+        go func() </span><span class="cov0" title="0">{
+                if err := server.ListenAndServe(); err != nil &amp;&amp; err != http.ErrServerClosed </span><span class="cov0" title="0">{
+                        log.Fatalf("Не удалось запустить сервер: %v", err)
+                }</span>
+        }()
+
+        <span class="cov0" title="0">log.Println("Сервер запущен на http://localhost:8080")
+
+        quit := make(chan os.Signal, 1)
+        signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+        &lt;-quit
+        log.Println("Получен сигнал завершения работы, завершение сервера...")
+
+        ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+        defer cancel()
+
+        if err := server.Shutdown(ctx); err != nil </span><span class="cov0" title="0">{
+                log.Fatalf("Ошибка при завершении работы сервера: %v", err)
+        }</span>
+        <span class="cov0" title="0">log.Println("Сервер успешно завершил работу")</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package controllers
+
+import (
+        "github.com/dgrijalva/jwt-go"
+        "github.com/gin-gonic/gin"
+        "golang.org/x/crypto/bcrypt"
+        "log"
+        "net/http"
+        "time"
+        "todo-app/internal/database"
+        "todo-app/internal/models"
+)
+
+var JwtSecret = []byte("секретный_ключ")
+
+// Структура JWT токена
+type Claims struct {
+        Username string `json:"username"`
+        jwt.StandardClaims
+}
+
+// Регистрация нового пользователя
+func Register(c *gin.Context) <span class="cov8" title="1">{
+        var user models.User
+        if err := c.ShouldBindJSON(&amp;user); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        // Хеширование пароля
+        <span class="cov8" title="1">hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось захешировать пароль"})
+        }</span>
+
+        <span class="cov8" title="1">user.Password = string(hashedPassword)
+
+        // Сохранение нового пользователя в БД
+        if err := database.DB.Create(&amp;user).Error; err != nil </span><span class="cov0" title="0">{
+                log.Println("Ошибка при создании пользователя:", err)
+                c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось создать пользователя"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">c.JSON(http.StatusOK, gin.H{"message": "Пользователь успешно зарегистрирован"})</span>
+}
+
+// Логин пользователя
+func Login(c *gin.Context) <span class="cov8" title="1">{
+        var user models.User
+        var input models.User
+
+        if err := c.ShouldBindJSON(&amp;input); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        // Проверка существования пользователя
+        <span class="cov8" title="1">if err := database.DB.Where("username = ?", input.Username).First(&amp;user).Error; err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusUnauthorized, gin.H{"error": "Неверное имя пользователя или пароль"})
+                return
+        }</span>
+
+        // Проверка пароля
+        <span class="cov8" title="1">if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password)); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusUnauthorized, gin.H{"error": "Неверное имя пользователя или пароль"})
+        }</span>
+
+        // Создание JWT токена
+        <span class="cov8" title="1">expirationTime := time.Now().Add(24 * time.Hour)
+        claims := &amp;Claims{
+                Username: input.Username,
+                StandardClaims: jwt.StandardClaims{
+                        ExpiresAt: expirationTime.Unix(),
+                },
+        }
+        token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+        tokenString, err := token.SignedString(JwtSecret)
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось создать JWT токен"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">c.JSON(http.StatusOK, gin.H{"token": tokenString})</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package controllers
+
+import (
+        "net/http"
+        "todo-app/internal/database"
+        "todo-app/internal/models"
+
+        "github.com/gin-gonic/gin"
+)
+
+func GetAllToDos(c *gin.Context) <span class="cov0" title="0">{
+        var todos []models.ToDo
+        database.DB.Find(&amp;todos)
+        c.JSON(http.StatusOK, todos)
+}</span>
+
+func CreateToDo(c *gin.Context) <span class="cov0" title="0">{
+        var todo models.ToDo
+        if err := c.ShouldBindJSON(&amp;todo); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+        <span class="cov0" title="0">database.DB.Create(&amp;todo)
+        c.JSON(http.StatusOK, todo)</span>
+}
+
+func UpdateToDo(c *gin.Context) <span class="cov0" title="0">{
+        var todo models.ToDo
+        id := c.Param("id")
+        if err := database.DB.First(&amp;todo, id).Error; err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusNotFound, gin.H{"error": "Задача не найдена"})
+                return
+        }</span>
+        <span class="cov0" title="0">if err := c.ShouldBindJSON(&amp;todo); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+        <span class="cov0" title="0">database.DB.Save(&amp;todo)
+        c.JSON(http.StatusOK, todo)</span>
+}
+
+func DeleteToDo(c *gin.Context) <span class="cov0" title="0">{
+        var todo models.ToDo
+        id := c.Param("id")
+        if err := database.DB.First(&amp;todo, id).Error; err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusNotFound, gin.H{"error": "Задача не найдена"})
+                return
+        }</span>
+        <span class="cov0" title="0">database.DB.Delete(&amp;todo)
+        c.JSON(http.StatusOK, gin.H{"message": "Задача удалена"})</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package database
+
+import (
+        "fmt"
+        "github.com/joho/godotenv"
+        "gorm.io/driver/postgres"
+        "gorm.io/driver/sqlite"
+        "gorm.io/gorm"
+        "log"
+        "os"
+        "todo-app/internal/models"
+)
+
+var DB *gorm.DB
+
+func Connect() <span class="cov8" title="1">{
+        if os.Getenv("GO_ENV") == "test" </span><span class="cov8" title="1">{
+                // Используем SQLite в памяти для тестов
+                db, err := gorm.Open(sqlite.Open(":memory:"), &amp;gorm.Config{})
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Fatal("Не удалось подключиться к in-memory базе данных: ", err)
+                }</span>
+                <span class="cov8" title="1">db.AutoMigrate(&amp;models.User{}, &amp;models.ToDo{})
+                DB = db
+                return</span>
+        }
+        // Загружаем переменные из.env файла в окружение
+        <span class="cov0" title="0">err := godotenv.Load("../.env")
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatal("Error while loading .env file: $v", err)
+        }</span>
+
+        <span class="cov0" title="0">host := os.Getenv("DB_HOST")
+        user := os.Getenv("DB_USER")
+        password := os.Getenv("DB_PASSWORD")
+        dbname := os.Getenv("DB_NAME")
+        port := os.Getenv("DB_PORT")
+
+        dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", host, user, password, dbname, port)
+
+        db, err := gorm.Open(postgres.Open(dsn), &amp;gorm.Config{})
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatal("Не удалось подключиться к базе данных: ", err)
+        }</span>
+
+        <span class="cov0" title="0">db.AutoMigrate(&amp;models.User{}, &amp;models.ToDo{}) // Автоматическая миграция таблицы для модели ToDo
+        DB = db</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package middleware
+
+import (
+        "github.com/dgrijalva/jwt-go"
+        "github.com/gin-gonic/gin"
+        "net/http"
+        "strings"
+        "todo-app/internal/controllers"
+)
+
+func AuthMiddleware() gin.HandlerFunc <span class="cov8" title="1">{
+        return func(c *gin.Context) </span><span class="cov8" title="1">{
+                authHeader := c.GetHeader("Authorization")
+                if authHeader == "" </span><span class="cov8" title="1">{
+                        c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing token"})
+                        c.Abort()
+                        return
+                }</span>
+
+                <span class="cov8" title="1">tokenString := strings.Split(authHeader, "Bearer ")[1]
+
+                claims := &amp;controllers.Claims{}
+                token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) </span><span class="cov8" title="1">{
+                        return controllers.JwtSecret, nil
+                }</span>)
+
+                <span class="cov8" title="1">if err != nil || !token.Valid </span><span class="cov8" title="1">{
+                        c.JSON(http.StatusUnauthorized, gin.H{"error": "Imvalid token"})
+                        c.Abort()
+                        return
+                }</span>
+
+                <span class="cov8" title="1">c.Set("username", claims.Username)
+                c.Next()</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package routes
+
+import (
+        "github.com/gin-gonic/gin"
+        "todo-app/internal/controllers"
+        "todo-app/internal/middleware"
+)
+
+func SetupRoutes(r *gin.Engine) <span class="cov0" title="0">{
+        r.GET("/", func(c *gin.Context) </span><span class="cov0" title="0">{
+                c.JSON(200, gin.H{
+                        "message": "Welcome to ToDo API",
+                })
+        }</span>)
+
+        // Маршруты для аутентификации
+        <span class="cov0" title="0">r.POST("/register", controllers.Register)
+        r.POST("/login", controllers.Login)
+
+        // Защищенные маршруты для задач
+        protected := r.Group("/todos")
+        protected.Use(middleware.AuthMiddleware())
+
+        // CRUD операции для задач
+        protected.GET("/", controllers.GetAllToDos)
+        protected.POST("/", controllers.CreateToDo)
+        protected.PUT("/:id", controllers.UpdateToDo)
+        protected.DELETE("/:id", controllers.DeleteToDo)</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package logger
+
+import (
+        "log/slog"
+        "os"
+)
+
+type Logger struct {
+        logger *slog.Logger
+}
+
+func NewLogger() *Logger <span class="cov0" title="0">{
+
+        customHandler := slog.NewJSONHandler(os.Stdout, nil)
+        l := slog.New(customHandler)
+        slog.SetDefault(l)
+
+        return &amp;Logger{
+                logger: l,
+        }
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

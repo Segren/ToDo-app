@@ -1,0 +1,25 @@
+name: Go
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.23
+    - name: Install dependencies
+      run: go mod download
+    - name: Run tests
+      env:
+        GO_ENV: test
+      run: go test ./... -v -cover
