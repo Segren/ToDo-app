@@ -78,7 +78,8 @@ func startServerWithGracefulShutdown(handler http.Handler) error {
 	defer cancel()
 
 	if err := server.Shutdown(ctx); err != nil {
-		errorLog.Fatalf("Error while stopping server: %v", err)
+		errorLog.Printf("Error while stopping server: %v", err)
+		return err
 	}
 
 	infoLog.Println("Server stopped successfully")
