@@ -54,7 +54,7 @@ Make sure you have PostgreSQL installed and running. You can create the todoapp 
 ### Step 5: Run the application
 
 from cmd/toDo-app/ run
-``` go run main.go ```
+``` go run main.go -addr=":8080"```
 
 The server will be running on http://localhost:8080.
 

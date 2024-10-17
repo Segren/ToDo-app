@@ -16,6 +16,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/files"
 	"github.com/swaggo/gin-swagger"
@@ -47,32 +48,35 @@ func run() error {
 }
 
 func startServerWithGracefulShutdown(handler http.Handler) error {
+	addr := flag.String("addr", ":8080", "HTTP network address")
+	flag.Parse()
+
 	server := &http.Server{
-		Addr:    ":8080",
+		Addr:    *addr,
 		Handler: handler,
 	}
 
 	go func() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Не удалось запустить сервер: %v", err)
+			log.Fatalf("Server not started: %v", err)
 		}
 	}()
 
-	log.Println("Сервер запущен на http://localhost:8080")
+	log.Printf("Starting server on %s", *addr)
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	<-quit
-	log.Println("Получен сигнал завершения работы, завершение сервера...")
+	log.Println("Stop signal recieved, server stop...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	if err := server.Shutdown(ctx); err != nil {
-		log.Fatalf("Ошибка при завершении работы сервера: %v", err)
+		log.Fatalf("Error while stopping server: %v", err)
 	}
 
-	log.Println("Сервер успешно завершил работу")
+	log.Println("Server stopped successfully")
 	return nil
 }
