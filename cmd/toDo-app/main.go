@@ -48,35 +48,39 @@ func run() error {
 }
 
 func startServerWithGracefulShutdown(handler http.Handler) error {
+	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
+	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+
 	addr := flag.String("addr", ":8080", "HTTP network address")
 	flag.Parse()
 
 	server := &http.Server{
-		Addr:    *addr,
-		Handler: handler,
+		Addr:     *addr,
+		ErrorLog: errorLog,
+		Handler:  handler,
 	}
 
 	go func() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Server not started: %v", err)
+			errorLog.Fatalf("Server not started: %v", err)
 		}
 	}()
 
-	log.Printf("Starting server on %s", *addr)
+	infoLog.Printf("Starting server on %s", *addr)
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	<-quit
-	log.Println("Stop signal recieved, server stop...")
+	infoLog.Println("Stop signal recieved, server stop...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	if err := server.Shutdown(ctx); err != nil {
-		log.Fatalf("Error while stopping server: %v", err)
+		errorLog.Fatalf("Error while stopping server: %v", err)
 	}
 
-	log.Println("Server stopped successfully")
+	infoLog.Println("Server stopped successfully")
 	return nil
 }
