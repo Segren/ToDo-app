@@ -3,8 +3,8 @@ version: '3.8'
 services:
   app:
     build:
-      context: ..
-      dockerfile: docker/Dockerfile
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
     depends_on:
@@ -16,6 +16,8 @@ services:
       DB_PASSWORD: postgres
       DB_NAME: todoapp
       DB_PORT: 5432
+    networks:
+      - todo_network
 
   db:
     image: postgres:13-alpine
@@ -32,6 +34,12 @@ services:
       interval: 5s
       timeout: 10s
       retries: 5
+    networks:
+      - todo_network
+
+networks:
+  todo_network:
+    driver: bridge
 
 volumes:
   db-data:

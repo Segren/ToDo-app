@@ -109,8 +109,6 @@ This project includes Docker support for easier setup and deployment.
 
 ### Build and run with Docker Compose
 
-```cd docker/```
-
-```docker-compose up --build```
+```Make up```
 
 This will set up the application and a PostgreSQL database. The application will be available at http://localhost:8080.
