@@ -1,5 +1,7 @@
 # ToDo App with REST API
 
+![Go Image](./images/goImage.jpeg)
+
 This is a simple ToDo application built with Go (Golang), Gin framework, GORM, PostgreSQL, and JWT authentication. The application allows users to register, log in, and manage their tasks (create, read, update, and delete tasks). It also includes Swagger documentation for the API.
 
 
