@@ -26,28 +26,42 @@ func (app *application) startServerWithGracefulShutdown() error {
 		Handler:  r,
 	}
 
+	shutdownError := make(chan error)
+
+	//graceful shutdown
 	go func() {
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			app.errorLog.Fatalf("Server not started: %v", err)
+		quit := make(chan os.Signal, 1)
+
+		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+		s := <-quit
+		app.infoLog.Printf("Caught signal %s, shutting down server...", s)
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		err := server.Shutdown(ctx)
+		if err != nil {
+			shutdownError <- err
 		}
+
+		app.infoLog.Printf("completing background tasks")
+
+		app.wg.Wait()
+		shutdownError <- nil
 	}()
 
 	app.infoLog.Printf("Starting server on %s", addr)
-
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-
-	<-quit
-	app.infoLog.Println("Stop signal recieved, server stop...")
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	if err := server.Shutdown(ctx); err != nil {
-		app.errorLog.Printf("Error while stopping server: %v", err)
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		return err
 	}
 
-	app.infoLog.Println("Server stopped successfully")
+	err := <-shutdownError
+	if err != nil {
+		return err
+	}
+
+	app.infoLog.Printf("Server stoped")
+
 	return nil
 }

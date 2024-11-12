@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 	_ "todo-app/docs"
 )
 
@@ -35,6 +36,7 @@ type application struct {
 	config   config
 	infoLog  *log.Logger
 	errorLog *log.Logger
+	wg       sync.WaitGroup
 }
 
 func main() {
@@ -59,6 +61,6 @@ func main() {
 	}
 
 	if err := app.startServerWithGracefulShutdown(); err != nil {
-		app.infoLog.Printf("End of work")
+		app.errorLog.Fatal(err)
 	}
 }
