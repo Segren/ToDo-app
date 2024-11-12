@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Launch Go Program",
+        "type": "go",
+        "request": "launch",
+        "mode": "auto", // Режим отладки может быть "auto", "debug" или "remote"
+        "program": "${workspaceFolder}/cmd/toDo-app/authController_test.go", // Путь к основному пакету (например, main)
+        "env": {
+          "GOENV": "development",
+        },
+        "args": [], // Список аргументов командной строки для программы
+        "buildFlags": "",
+        //"port": 2345, // Порт для удаленной отладки (по необходимости)
+        "output": "",
+        "showLog": true,
+        "trace": "log"
+      }
+    ]
+}

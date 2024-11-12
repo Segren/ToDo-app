@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"todo-app/internal/controllers"
-	"todo-app/internal/database"
 	"todo-app/internal/models"
 
 	"github.com/dgrijalva/jwt-go"
@@ -17,9 +15,11 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"time"
+	"todo-app/internal/database"
+	"todo-app/internal/service"
 )
 
-func setupTestDB() {
+func setupRoutesTestDB() {
 	// Создаём in-memory базу данных для тестов
 	db, _ := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	db.AutoMigrate(&models.User{}, &models.ToDo{})
@@ -43,14 +43,14 @@ func hashPassword(password string) (string, error) {
 // Вспомогательная функция для генерации JWT токена
 func generateJWT(username string) (string, error) {
 	expirationTime := time.Now().Add(24 * time.Hour)
-	claims := &controllers.Claims{
+	claims := &service.Claims{
 		Username: username,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(controllers.JwtSecret)
+	tokenString, err := token.SignedString(service.JwtSecret)
 	return tokenString, err
 }
 
@@ -67,7 +67,7 @@ func TestHomeRoute(t *testing.T) {
 }
 
 func TestRegisterRoute(t *testing.T) {
-	setupTestDB()
+	setupRoutesTestDB()
 	router := setupRouter()
 
 	// Создадим запрос на регистрацию
@@ -88,7 +88,7 @@ func TestRegisterRoute(t *testing.T) {
 }
 
 func TestLoginRoute(t *testing.T) {
-	setupTestDB()
+	setupRoutesTestDB()
 	router := setupRouter()
 
 	// Создадим тестового пользователя
@@ -135,7 +135,7 @@ func TestProtectedRouteWithoutToken(t *testing.T) {
 }
 
 func TestProtectedRouteWithToken(t *testing.T) {
-	setupTestDB()
+	setupRoutesTestDB()
 	router := setupRouter()
 
 	// Создадим тестового пользователя

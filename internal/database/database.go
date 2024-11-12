@@ -25,7 +25,7 @@ func Connect() {
 		return
 	}
 	// Загружаем переменные из.env файла в окружение
-	err := godotenv.Load("../../.env")
+	err := godotenv.Load(".env")
 	if err != nil {
 		log.Println("Error while loading .env file: $v", err)
 	}

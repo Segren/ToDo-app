@@ -15,73 +15,50 @@
 package main
 
 import (
-	"context"
 	"flag"
-	"github.com/gin-gonic/gin"
-	"github.com/swaggo/files"
-	"github.com/swaggo/gin-swagger"
+	"fmt"
 	"log"
-	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
-	"time"
 	_ "todo-app/docs"
-	"todo-app/internal/database"
-	"todo-app/internal/routes"
 )
 
+var (
+	buildTime string
+	version   string
+)
+
+type config struct {
+	port int
+	env  string
+}
+type application struct {
+	config   config
+	infoLog  *log.Logger
+	errorLog *log.Logger
+}
+
 func main() {
-	if err := run(); err != nil {
-		panic(err)
-	}
-}
+	var cfg config
 
-func run() error {
-	r := gin.Default()
-	database.Connect()
-	routes.SetupRoutes(r)
+	flag.IntVar(&cfg.port, "port", 8080, "API server port")
+	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
+	displayVersion := flag.Bool("version", false, "Display version information and exit")
 
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
-	return startServerWithGracefulShutdown(r)
-}
-
-func startServerWithGracefulShutdown(handler http.Handler) error {
-	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
-	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
-
-	addr := flag.String("addr", ":8080", "HTTP network address")
 	flag.Parse()
 
-	server := &http.Server{
-		Addr:     *addr,
-		ErrorLog: errorLog,
-		Handler:  handler,
+	if *displayVersion {
+		fmt.Printf("ToDo-app version:\t%s\n", version)
+		fmt.Printf("Build time:\t%s\n", buildTime)
+		os.Exit(0)
 	}
 
-	go func() {
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			errorLog.Fatalf("Server not started: %v", err)
-		}
-	}()
-
-	infoLog.Printf("Starting server on %s", *addr)
-
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-
-	<-quit
-	infoLog.Println("Stop signal recieved, server stop...")
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	if err := server.Shutdown(ctx); err != nil {
-		errorLog.Printf("Error while stopping server: %v", err)
-		return err
+	app := &application{
+		config:   cfg,
+		infoLog:  log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime),
+		errorLog: log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile),
 	}
 
-	infoLog.Println("Server stopped successfully")
-	return nil
+	if err := app.startServerWithGracefulShutdown(); err != nil {
+		app.infoLog.Printf("End of work")
+	}
 }

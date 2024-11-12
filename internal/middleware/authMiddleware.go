@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
-	"todo-app/internal/controllers"
+	"todo-app/internal/service"
 )
 
 func AuthMiddleware() gin.HandlerFunc {
@@ -19,9 +19,9 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		tokenString := strings.Split(authHeader, "Bearer ")[1]
 
-		claims := &controllers.Claims{}
+		claims := &service.Claims{}
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-			return controllers.JwtSecret, nil
+			return service.JwtSecret, nil
 		})
 
 		if err != nil || !token.Valid {

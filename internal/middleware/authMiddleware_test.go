@@ -8,13 +8,13 @@ import (
 	"strings"
 	"testing"
 	"time"
-	"todo-app/internal/controllers"
+	"todo-app/internal/service"
 )
 
 // Генерация валидного JWT токена для тестов
 func generateValidJWT() string {
 	expirationTime := time.Now().Add(5 * time.Minute)
-	claims := &controllers.Claims{
+	claims := &service.Claims{
 		Username: "testuser",
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
@@ -22,7 +22,7 @@ func generateValidJWT() string {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, _ := token.SignedString(controllers.JwtSecret)
+	tokenString, _ := token.SignedString(service.JwtSecret)
 	return tokenString
 }
 

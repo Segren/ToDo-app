@@ -2,8 +2,10 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
-	"todo-app/internal/controllers"
+	"github.com/swaggo/files"
+	"github.com/swaggo/gin-swagger"
 	"todo-app/internal/middleware"
+	"todo-app/internal/service"
 )
 
 func SetupRoutes(r *gin.Engine) {
@@ -14,16 +16,19 @@ func SetupRoutes(r *gin.Engine) {
 	})
 
 	// Маршруты для аутентификации
-	r.POST("/register", controllers.Register)
-	r.POST("/login", controllers.Login)
+	r.POST("/register", service.Register)
+	r.POST("/login", service.Login)
 
 	// Защищенные маршруты для задач
 	protected := r.Group("/todos")
 	protected.Use(middleware.AuthMiddleware())
 
 	// CRUD операции для задач
-	protected.GET("/", controllers.GetAllToDos)
-	protected.POST("/", controllers.CreateToDo)
-	protected.PUT("/:id", controllers.UpdateToDo)
-	protected.DELETE("/:id", controllers.DeleteToDo)
+	protected.GET("/", service.GetAllToDos)
+	protected.POST("/", service.CreateToDo)
+	protected.PUT("/:id", service.UpdateToDo)
+	protected.DELETE("/:id", service.DeleteToDo)
+
+	// Swagger
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }
