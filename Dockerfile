@@ -2,13 +2,13 @@ FROM golang:1.23-alpine
 
 WORKDIR /app
 
-COPY ../go.mod ../go.sum ./
+COPY go.mod go.sum ./
 
-COPY ../.env ../.env
+COPY .env .env
 
 RUN go mod download
 
-COPY ../ ./
+COPY . .
 
 RUN go build -o main ./cmd/toDo-app
 
